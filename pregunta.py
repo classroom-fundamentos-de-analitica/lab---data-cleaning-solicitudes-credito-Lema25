@@ -17,15 +17,23 @@ def clean_data():
     """
     df = pd.read_csv("solicitudes_credito.csv", sep=";", index_col=0)
 
+    #
+    # Inserte su código aquí
+    #
+
     df.dropna(inplace=True)
-    df.sexo = df.sexo.str.lower()
-    df.tipo_de_emprendimiento = df.tipo_de_emprendimiento.str.lower()
+    df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].str.lower();
+    df['sexo'] = df['sexo'].str.lower();
     df.idea_negocio = [str.lower(idea.replace("_", " ").replace("-", " ")) for idea in df.idea_negocio]
     df.barrio = [str.lower(barrio).replace("_", " ").replace("-", " ") for barrio in df.barrio]
-    df['línea_credito']=df['línea_credito'].apply(lambda x: x.lower().replace("-"," ").replace("_"," "))
-    df['comuna_ciudadano'] = df['comuna_ciudadano'].astype(int)
-    df['monto_del_credito']=df['monto_del_credito'].apply(lambda x: x.strip("$").replace(",","")).astype(float)
-    df['fecha_de_beneficio'] = df['fecha_de_beneficio'].apply(convertir_fecha)
-    df=df.drop_duplicates()
-    
+    df.comuna_ciudadano = df.comuna_ciudadano.astype(int)
+    df.estrato = df.estrato.astype(int)
+    df["línea_credito"] = [str.lower(linea.strip().replace("-", " ").replace("_", " ").replace(". ", ".")) for linea in df["línea_credito"]]
+    df.fecha_de_beneficio = [datetime.strptime(date, "%d/%m/%Y") if bool(re.search(r"\d{1,2}/\d{2}/\d{4}", date))
+                             else datetime.strptime(date, "%Y/%m/%d")
+                             for date in df.fecha_de_beneficio]
+    df.monto_del_credito = [int(monto.replace("$ ", "").replace(".00", "").replace(",", "")) for monto in
+                            df.monto_del_credito]
+    df.drop_duplicates(inplace=True)
+
     return df
